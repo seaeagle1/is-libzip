@@ -10,6 +10,7 @@ mod tests {
     use tempdir::TempDir;
     use std::ffi::CString;
     use std::os::raw::{c_int, c_void};
+    use std::mem::zeroed;
 
     #[test]
     fn round_trip() {
@@ -22,12 +23,13 @@ mod tests {
             let zip = zip_open(zip_path.as_ptr(), (ZIP_CREATE | ZIP_EXCL) as _, &mut errorp as _);
             assert!(!zip.is_null());
 
-            let source = zip_source_buffer(zip, foo.as_ptr() as _, foo.len() as zip_uint64_t, 0);
+            let mut error = zeroed();
+            let source = zip_source_buffer_create(foo.as_ptr() as _, foo.len() as zip_uint64_t, 0, &mut error as _);
             assert!(!source.is_null());
 
             assert_ne!(zip_file_add(zip, CString::new("foo").unwrap().as_ptr(), source, ZIP_FL_ENC_GUESS), -1);
 
-            let source = zip_source_buffer(zip, bar.as_ptr() as _, bar.len() as _, 0);
+            let source = zip_source_buffer_create(bar.as_ptr() as _, bar.len() as _, 0, &mut error as _);
             assert!(!source.is_null());
 
             assert_ne!(zip_file_add(zip, CString::new("bar").unwrap().as_ptr(), source, ZIP_FL_ENC_GUESS), -1);

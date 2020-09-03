@@ -1,12 +1,12 @@
 use crate::error::ZipErrorT;
-use crate::Result;
-use crate::Error;
 use crate::ffi;
-use std::marker::PhantomData;
-use std::ptr::null_mut;
-use std::ffi::{CStr, CString};
+use crate::Error;
+use crate::Result;
 use std::convert::{TryFrom, TryInto};
+use std::ffi::{CStr, CString};
+use std::marker::PhantomData;
 use std::path::Path;
+use std::ptr::null_mut;
 
 /// A simple marker enum, used to indicate that the source holds an open file handle.
 pub enum File {}
@@ -40,12 +40,7 @@ impl<'a> TryFrom<&'a [u8]> for Source<&'a [u8]> {
     fn try_from(buffer: &[u8]) -> Result<Source<&[u8]>> {
         let mut error = ZipErrorT::default();
         let handle = unsafe {
-            ffi::zip_source_buffer_create(
-                buffer.as_ptr() as _,
-                buffer.len() as _,
-                0,
-                &mut *error,
-            )
+            ffi::zip_source_buffer_create(buffer.as_ptr() as _, buffer.len() as _, 0, &mut *error)
         };
         if handle.is_null() {
             Err(error.into())
@@ -63,14 +58,7 @@ impl TryFrom<&CStr> for Source<File> {
 
     fn try_from(filename: &CStr) -> Result<Source<File>> {
         let mut error = ZipErrorT::default();
-        let handle = unsafe {
-            ffi::zip_source_file_create(
-                filename.as_ptr(),
-                0,
-                0,
-                &mut *error,
-            )
-        };
+        let handle = unsafe { ffi::zip_source_file_create(filename.as_ptr(), 0, 0, &mut *error) };
         if handle.is_null() {
             Err(error.into())
         } else {
@@ -91,7 +79,8 @@ impl TryFrom<&Path> for Source<File> {
     type Error = Error;
 
     fn try_from(filename: &Path) -> Result<Source<File>> {
-        let filename = CString::new(filename.to_string_lossy().into_owned()).expect("The path could not be converted into a CString");
+        let filename = CString::new(filename.to_string_lossy().into_owned())
+            .expect("The path could not be converted into a CString");
         filename.as_ref().try_into()
     }
 }

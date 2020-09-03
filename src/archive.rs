@@ -1,12 +1,12 @@
-use crate::file::{Encoding, File, OpenFlag as FileOpenFlag, LocateFlag};
-use crate::Result;
-use crate::Error;
-use crate::ffi;
-use std::ffi::CStr;
-use std::ptr::null_mut;
-use std::marker::PhantomData;
-use crate::source::Source;
 use crate::error::ZipErrorT;
+use crate::ffi;
+use crate::file::{Encoding, File, LocateFlag, OpenFlag as FileOpenFlag};
+use crate::source::Source;
+use crate::Error;
+use crate::Result;
+use std::ffi::CStr;
+use std::marker::PhantomData;
+use std::ptr::null_mut;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OpenFlag {
@@ -24,7 +24,8 @@ pub struct Archive {
 
 impl Archive {
     pub fn open<S, F>(mut source: Source<S>, flags: F) -> Result<Archive>
-        where F: AsRef<[OpenFlag]> 
+    where
+        F: AsRef<[OpenFlag]>,
     {
         let mut flags_value = 0;
         for flag in flags.as_ref() {
@@ -39,15 +40,14 @@ impl Archive {
 
         unsafe {
             let mut error = ZipErrorT::default();
-            let handle = ffi::zip_open_from_source(source.handle_mut(), flags_value as _, &mut *error);
+            let handle =
+                ffi::zip_open_from_source(source.handle_mut(), flags_value as _, &mut *error);
 
             if handle.is_null() {
                 Err(error.into())
             } else {
                 source.taken();
-                Ok(Archive {
-                    handle,
-                })
+                Ok(Archive { handle })
             }
         }
     }
@@ -65,9 +65,7 @@ impl Archive {
         if self.handle.is_null() {
             Ok(())
         } else {
-            let result = unsafe {
-                ffi::zip_close(self.handle)
-            };
+            let result = unsafe { ffi::zip_close(self.handle) };
             if result == 0 {
                 self.handle = null_mut();
                 Ok(())
@@ -102,8 +100,15 @@ impl Archive {
 
     /// Add a file to the zip archive.
     /// Returns the index of the new file.
-    pub fn add<N, S>(&mut self, name: N, mut source: Source<S>, encoding: Encoding, overwrite: bool) -> Result<u64> 
-        where N: AsRef<CStr>
+    pub fn add<N, S>(
+        &mut self,
+        name: N,
+        mut source: Source<S>,
+        encoding: Encoding,
+        overwrite: bool,
+    ) -> Result<u64>
+    where
+        N: AsRef<CStr>,
     {
         let mut flags = match encoding {
             Encoding::Guess => ffi::ZIP_FL_ENC_GUESS,
@@ -115,7 +120,12 @@ impl Archive {
         }
 
         let response = unsafe {
-            ffi::zip_file_add(self.handle, name.as_ref().as_ptr(), source.handle_mut(), flags as _)
+            ffi::zip_file_add(
+                self.handle,
+                name.as_ref().as_ptr(),
+                source.handle_mut(),
+                flags as _,
+            )
         };
         if response == -1 {
             Err(self.error().into())
@@ -126,11 +136,9 @@ impl Archive {
     }
 
     /// Replace a file in the zip archive.
-    pub fn replace<S>(&mut self, index: u64, mut source: Source<S>) -> Result<()> 
-    {
-        let response = unsafe {
-            ffi::zip_file_replace(self.handle, index as _, source.handle_mut(), 0)
-        };
+    pub fn replace<S>(&mut self, index: u64, mut source: Source<S>) -> Result<()> {
+        let response =
+            unsafe { ffi::zip_file_replace(self.handle, index as _, source.handle_mut(), 0) };
         if response == -1 {
             Err(self.error().into())
         } else {
@@ -141,10 +149,16 @@ impl Archive {
 
     /// Add a file to the zip archive.
     /// Returns the index of the new file.
-    pub fn open_file<N, O, L>(&mut self, name: N, open_flags: O, locate_flags: L) -> Result<File<'_>> 
-        where N: AsRef<CStr>,
-        O: AsRef<[FileOpenFlag]> ,
-        L: AsRef<[LocateFlag]> ,
+    pub fn open_file<N, O, L>(
+        &mut self,
+        name: N,
+        open_flags: O,
+        locate_flags: L,
+    ) -> Result<File<'_>>
+    where
+        N: AsRef<CStr>,
+        O: AsRef<[FileOpenFlag]>,
+        L: AsRef<[LocateFlag]>,
     {
         let mut flags_value = 0;
         for flag in open_flags.as_ref() {
@@ -162,9 +176,8 @@ impl Archive {
                 LocateFlag::EncodingStrict => flags_value |= ffi::ZIP_FL_ENC_STRICT,
             }
         }
-        let handle = unsafe {
-            ffi::zip_fopen(self.handle, name.as_ref().as_ptr(), flags_value as _)
-        };
+        let handle =
+            unsafe { ffi::zip_fopen(self.handle, name.as_ref().as_ptr(), flags_value as _) };
         if handle.is_null() {
             Err(self.error().into())
         } else {

@@ -1,11 +1,11 @@
-use crate::Result;
-use crate::Error;
-use crate::ffi;
 use crate::archive::Archive;
-use std::ptr::null_mut;
 use crate::error::ZipErrorT;
-use std::marker::PhantomData;
+use crate::ffi;
+use crate::Error;
+use crate::Result;
 use std::io;
+use std::marker::PhantomData;
+use std::ptr::null_mut;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Encoding {
@@ -47,9 +47,7 @@ impl File<'_> {
         if self.handle.is_null() {
             Ok(())
         } else {
-            let result = unsafe {
-                ffi::zip_fclose(self.handle)
-            };
+            let result = unsafe { ffi::zip_fclose(self.handle) };
             self.handle = null_mut();
             if result == 0 {
                 Ok(())
@@ -72,9 +70,7 @@ impl Drop for File<'_> {
 
 impl io::Read for File<'_> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let result = unsafe {
-            ffi::zip_fread(self.handle, buf.as_mut_ptr() as _, buf.len() as _)
-        };
+        let result = unsafe { ffi::zip_fread(self.handle, buf.as_mut_ptr() as _, buf.len() as _) };
         if result == -1 {
             let error: Error = self.error().into();
             Err(io::Error::new(io::ErrorKind::Other, error))
@@ -88,9 +84,13 @@ impl io::Seek for File<'_> {
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
         let result = unsafe {
             match pos {
-                io::SeekFrom::Start(pos) => ffi::zip_fseek(self.handle, pos as _, ffi::SEEK_SET as _),
+                io::SeekFrom::Start(pos) => {
+                    ffi::zip_fseek(self.handle, pos as _, ffi::SEEK_SET as _)
+                }
                 io::SeekFrom::End(pos) => ffi::zip_fseek(self.handle, pos as _, ffi::SEEK_END as _),
-                io::SeekFrom::Current(pos) => ffi::zip_fseek(self.handle, pos as _, ffi::SEEK_CUR as _),
+                io::SeekFrom::Current(pos) => {
+                    ffi::zip_fseek(self.handle, pos as _, ffi::SEEK_CUR as _)
+                }
             }
         };
         if result == -1 {

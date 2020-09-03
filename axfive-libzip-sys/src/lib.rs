@@ -1,14 +1,8 @@
-#![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-
-// Needed for tests
-#[cfg(test)]
-#[macro_use]
-extern crate std;
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +26,7 @@ mod tests {
             assert!(!zip.is_null());
 
             let mut error = zeroed();
-            ffi::zip_error_init(&mut error as _);
+            zip_error_init(&mut error as _);
             let source = zip_source_buffer_create(foo.as_ptr() as _, foo.len() as zip_uint64_t, 0, &mut error as _);
             assert!(!source.is_null());
 

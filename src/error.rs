@@ -1,6 +1,7 @@
 use crate::ffi;
 use std::mem::zeroed;
 use std::os::raw::c_int;
+use std::fmt;
 use std::ffi::CStr;
 use std::ops::{Deref, DerefMut};
 use std::borrow::{Borrow, BorrowMut};
@@ -55,6 +56,14 @@ pub struct Error {
     message: String,
 }
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Error: {}", self.message)
+    }
+}
+
+impl std::error::Error for Error { }
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// A containment structure for a zip_error_t.
@@ -71,6 +80,19 @@ impl Default for ZipErrorT<ffi::zip_error_t> {
         unsafe {
             let mut handle: ffi::zip_error_t = zeroed();
             ffi::zip_error_init(&mut handle);
+            ZipErrorT{
+                error: handle,
+                cleanup: true,
+            }
+        }
+    }
+}
+
+impl From<c_int> for ZipErrorT<ffi::zip_error_t> {
+    fn from(error: c_int) -> Self {
+        unsafe {
+            let mut handle: ffi::zip_error_t = zeroed();
+            ffi::zip_error_init_with_code(&mut handle, error);
             ZipErrorT{
                 error: handle,
                 cleanup: true,

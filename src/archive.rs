@@ -1,9 +1,10 @@
-use crate::file::Encoding;
+use crate::file::{Encoding, File, OpenFlag as FileOpenFlag, LocateFlag};
 use crate::Result;
 use crate::Error;
 use crate::ffi;
 use std::ffi::CStr;
 use std::ptr::null_mut;
+use std::marker::PhantomData;
 use crate::source::Source;
 use crate::error::ZipErrorT;
 
@@ -76,8 +77,8 @@ impl Archive {
         }
     }
 
-    /// Closes and consumes a zip file.  If this fails, an error and the failed-to-close zipfile
-    /// will be returned
+    /// Closes and consumes a zip file.
+    /// If this fails, the failed-to-close zipfile and an error will be returned.
     pub fn close(mut self) -> std::result::Result<(), (Self, Error)> {
         match self.close_mut() {
             Ok(()) => Ok(()),
@@ -85,9 +86,12 @@ impl Archive {
         }
     }
 
+    /// Internal non-consuming discard, to facilitate drop
     fn discard_mut(&mut self) {
-        unsafe {
-            ffi::zip_discard(self.handle)
+        if !self.handle.is_null() {
+            unsafe {
+                ffi::zip_discard(self.handle);
+            }
         }
     }
 
@@ -132,6 +136,42 @@ impl Archive {
         } else {
             source.taken();
             Ok(())
+        }
+    }
+
+    /// Add a file to the zip archive.
+    /// Returns the index of the new file.
+    pub fn open_file<N, O, L>(&mut self, name: N, open_flags: O, locate_flags: L) -> Result<File<'_>> 
+        where N: AsRef<CStr>,
+        O: AsRef<[FileOpenFlag]> ,
+        L: AsRef<[LocateFlag]> ,
+    {
+        let mut flags_value = 0;
+        for flag in open_flags.as_ref() {
+            match flag {
+                FileOpenFlag::Compressed => flags_value |= ffi::ZIP_FL_COMPRESSED,
+                FileOpenFlag::Unchanged => flags_value |= ffi::ZIP_FL_UNCHANGED,
+            }
+        }
+        for flag in locate_flags.as_ref() {
+            match flag {
+                LocateFlag::NoCase => flags_value |= ffi::ZIP_FL_NOCASE,
+                LocateFlag::NoDir => flags_value |= ffi::ZIP_FL_NODIR,
+                LocateFlag::EncodingRaw => flags_value |= ffi::ZIP_FL_ENC_RAW,
+                LocateFlag::EncodingGuess => flags_value |= ffi::ZIP_FL_ENC_GUESS,
+                LocateFlag::EncodingStrict => flags_value |= ffi::ZIP_FL_ENC_STRICT,
+            }
+        }
+        let handle = unsafe {
+            ffi::zip_fopen(self.handle, name.as_ref().as_ptr(), flags_value as _)
+        };
+        if handle.is_null() {
+            Err(self.error().into())
+        } else {
+            Ok(File {
+                handle,
+                phantom: PhantomData,
+            })
         }
     }
 }

@@ -3,6 +3,11 @@ name = "axfive-libzip"
 version = "0.1.0"
 authors = ["Taylor C. Richberger <taywee@gmx.com>"]
 edition = "2018"
+description = "Bindings for system libzip"
+repository = 'https://gitlab.com/Taywee/axfive-libzip'
+license = 'MIT'
+keywords = ['libzip', 'archival', 'zip', 'compression', 'bindings']
+categories = ['compression', 'filesystem', 'no-std']
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

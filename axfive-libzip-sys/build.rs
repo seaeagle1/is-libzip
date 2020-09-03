@@ -7,6 +7,7 @@ fn main() {
     println!("cargo:rustc-link-lib=zip");
     println!("cargo:rerun-if-changed=wrapper.h");
     if let Ok(_) = std::env::var("DOCS_RS") {
+        // Just a simple cheat to get around docs.rs not having libzip
         let mut output = File::create(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs")).unwrap();
         output.write_all(include_bytes!("docs_zip.rs")).unwrap();
     } else {

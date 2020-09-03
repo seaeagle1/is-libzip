@@ -1,3 +1,8 @@
+mod error;
+mod source;
+mod archive;
+mod file;
+
 #[cfg(test)]
 mod tests {
     #[test]

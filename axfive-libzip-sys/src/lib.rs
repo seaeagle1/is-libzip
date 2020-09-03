@@ -1,3 +1,4 @@
+#![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -5,9 +6,15 @@
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
+#[macro_use]
+extern crate std;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use tempdir::TempDir;
+    use std::string::String;
+    use std::vec::Vec;
     use std::ffi::CString;
     use std::os::raw::{c_int, c_void};
     use std::mem::zeroed;

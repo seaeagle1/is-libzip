@@ -5,7 +5,6 @@ pub mod source;
 
 use error::Error;
 use error::Result;
-
 use axfive_libzip_sys as ffi;
 
 #[cfg(test)]
@@ -14,9 +13,9 @@ mod tests {
     use std::convert::TryInto;
     use std::ffi::{CStr, CString};
     use std::io::Read;
-    use std::os::raw::{c_int, c_void};
+
     use std::string::String;
-    use std::vec::Vec;
+
     use tempdir::TempDir;
 
     #[test]
@@ -31,7 +30,7 @@ mod tests {
                 (&zip_path as &CStr).try_into().unwrap();
             let mut archive = archive::Archive::open(
                 file_source,
-                &[archive::OpenFlag::Create, archive::OpenFlag::Exclusive],
+                [archive::OpenFlag::Create, archive::OpenFlag::Exclusive],
             )
             .unwrap();
             let foo_source: source::Source<&[u8]> = foo.as_bytes().try_into().unwrap();
@@ -60,7 +59,7 @@ mod tests {
                 (&zip_path as &CStr).try_into().unwrap();
             let mut archive = archive::Archive::open(
                 file_source,
-                &[
+                [
                     archive::OpenFlag::CheckConsistency,
                     archive::OpenFlag::ReadOnly,
                 ],
@@ -68,7 +67,7 @@ mod tests {
             .unwrap();
             let mut foo_buf = String::new();
             archive
-                .open_file(&CString::new("foo").unwrap(), &[], &[])
+                .open_file(&CString::new("foo").unwrap(), [], [])
                 .unwrap()
                 .read_to_string(&mut foo_buf)
                 .unwrap();

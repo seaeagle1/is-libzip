@@ -25,10 +25,6 @@ impl<T> Source<T> {
         self.handle = null_mut();
     }
 
-    pub(crate) fn handle(&self) -> *const ffi::zip_source_t {
-        self.handle as _
-    }
-
     pub(crate) fn handle_mut(&mut self) -> *mut ffi::zip_source_t {
         self.handle
     }

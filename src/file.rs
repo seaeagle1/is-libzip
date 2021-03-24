@@ -15,6 +15,15 @@ pub enum Encoding {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Encryption {
+    None,
+    AES128,
+    AES192,
+    AES256,
+    PkWare,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OpenFlag {
     Compressed,
     Unchanged,

@@ -1,12 +1,13 @@
 use crate::error::ZipErrorT;
 use crate::ffi;
-use crate::file::{Encoding, File, LocateFlag, OpenFlag as FileOpenFlag};
+use crate::file::{Encoding, File, LocateFlag, OpenFlag as FileOpenFlag, Encryption};
 use crate::source::Source;
 use crate::Error;
 use crate::Result;
 use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::ptr::null_mut;
+use std::ptr;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OpenFlag {
@@ -146,6 +147,48 @@ impl Archive {
             Ok(())
         }
     }
+
+    // Set encryption flag for a file.
+    pub fn set_encryption_on_file(&mut self, encryption: Encryption, file_index: u64 ) -> Result<()> {
+        let mode = match encryption {
+            Encryption::None => ffi::ZIP_EM_NONE,
+            Encryption::AES128 => ffi::ZIP_EM_AES_128,
+            Encryption::AES192 => ffi::ZIP_EM_AES_192,
+            Encryption::AES256 => ffi::ZIP_EM_AES_256,
+            Encryption::PkWare => ffi::ZIP_EM_TRAD_PKWARE,
+        };
+        let response = unsafe {
+            ffi::zip_file_set_encryption(
+                self.handle,
+                file_index,
+                mode as _,
+                ptr::null::<i8>(),
+            )
+        };
+        if response == -1 {
+            Err(self.error().into())
+        } else {
+            Ok(())
+        }
+    }
+
+    // set archive default encryption password
+    pub fn set_encryption_password<N>(&mut self, password: N) -> Result<()>
+        where N: AsRef<CStr>
+    {
+        let response = unsafe {
+            ffi::zip_set_default_password(
+                self.handle,
+                password.as_ref().as_ptr()
+            )
+        };
+        if response == -1 {
+            Err(self.error().into())
+        } else {
+            Ok(())
+        }
+    }
+
 
     /// Add a file to the zip archive.
     /// Returns the index of the new file.

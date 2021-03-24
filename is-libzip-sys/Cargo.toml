@@ -1,0 +1,13 @@
+[package]
+name = "is-libzip-sys"
+version = "0.1.0"
+authors = ["SeaEagle1 <seaeagle1@users.sourceforge.net>", "Taylor C. Richberger <taywee@gmx.com>"]
+edition = "2018"
+description = "Bindgen bindings to system libzip"
+license = 'MIT'
+keywords = ['libzip', 'archival', 'zip', 'compression', 'bindings']
+categories = ['compression', 'filesystem']
+links = 'zip'
+
+[dev-dependencies]
+tempdir = '0.3'

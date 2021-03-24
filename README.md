@@ -1,2 +1,3 @@
-# axfive-libzip
-Simple Rust libzip wrapper.
+# is-libzip
+Rust libzip wrapper, based on axfive-libzip.
+

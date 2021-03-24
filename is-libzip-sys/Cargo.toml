@@ -1,18 +1,13 @@
 [package]
-name = "is-libzip"
+name = "is-libzip-sys"
 version = "0.1.0"
 authors = ["SeaEagle1 <seaeagle1@users.sourceforge.net>", "Taylor C. Richberger <taywee@gmx.com>"]
 edition = "2018"
-description = "Bindings for system libzip"
+description = "Bindgen bindings to system libzip"
 license = 'MIT'
 keywords = ['libzip', 'archival', 'zip', 'compression', 'bindings']
 categories = ['compression', 'filesystem']
-readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-is-libzip-sys = { path = 'is-libzip-sys' }
+links = 'zip'
 
 [dev-dependencies]
 tempdir = '0.3'

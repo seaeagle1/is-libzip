@@ -5,7 +5,7 @@ pub mod source;
 
 use error::Error;
 use error::Result;
-use axfive_libzip_sys as ffi;
+use is_libzip_sys as ffi;
 
 #[cfg(test)]
 mod tests {
